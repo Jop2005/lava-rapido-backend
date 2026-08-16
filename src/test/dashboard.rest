@@ -1,0 +1,95 @@
+### ============================================================
+### PRUEBAS DE DASHBOARD - LavaRápido
+### ============================================================
+### INCLUYE SEGURIDAD (JWT + Roles)
+### ============================================================
+
+@baseUrl = http://localhost:3000
+
+### ============================================================
+### 1. LOGIN ADMIN
+### ============================================================
+
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "admin",
+  "password": "Abc123456!"
+}
+
+### ============================================================
+### 2. OBTENER ESTADÍSTICAS DEL DASHBOARD
+### ============================================================
+
+GET {{baseUrl}}/dashboard/stats
+
+### ✅ Debería devolver:
+### {
+###   "totalSolicitudes": 10,
+###   "totalClientes": 5,
+###   "totalConductores": 2,
+###   "totalLavanderos": 2,
+###   "solicitudesPorEstado": {
+###     "SOLICITADA": 3,
+###     "EN_PROCESO": 2,
+###     "COMPLETADA": 5
+###   },
+###   "solicitudesPorDia": [
+###     { "fecha": "2026-08-10", "cantidad": 1 },
+###     { "fecha": "2026-08-11", "cantidad": 0 },
+###     { "fecha": "2026-08-12", "cantidad": 2 },
+###     ...
+###   ],
+###   "topClientes": [
+###     { "clienteId": "12345678901", "nombre": "Juan Pérez", "totalSolicitudes": 5 },
+###     ...
+###   ],
+###   "tiempoPromedioProcesamiento": 24.5
+### }
+
+### ============================================================
+### 3. LOGOUT ADMIN
+### ============================================================
+
+POST {{baseUrl}}/auth/logout
+
+### ============================================================
+### 4. LOGIN CLIENTE (debe fallar - 403)
+### ============================================================
+
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "juanperez",
+  "password": "Abc123456!"
+}
+
+### ============================================================
+### 5. CLIENTE INTENTA VER DASHBOARD (403)
+### ============================================================
+
+GET {{baseUrl}}/dashboard/stats
+
+### ============================================================
+### 6. LOGOUT CLIENTE
+### ============================================================
+
+POST {{baseUrl}}/auth/logout
+
+### ============================================================
+### 7. SIN AUTENTICACIÓN (401)
+### ============================================================
+
+GET {{baseUrl}}/dashboard/stats
+
+### ============================================================
+### NOTAS IMPORTANTES:
+### ============================================================
+### 1. Solo el administrador puede ver el dashboard
+### 2. Las estadísticas se calculan en tiempo real
+### 3. El tiempo promedio de procesamiento se calcula desde la creación
+###    hasta la finalización de la solicitud
+### 4. Los top clientes muestran los 5 clientes con más solicitudes
+### ============================================================

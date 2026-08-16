@@ -1,0 +1,544 @@
+### ============================================================
+### PRUEBAS COMPLETAS DE USUARIOS - LavaRápido
+### INCLUYE SEGURIDAD (JWT + Roles)
+### ============================================================
+### USUARIOS EN BD:
+### Cliente: juanperez / Abc123456!
+### Admin: admin / Abc123456!
+### Conductor: conductor1 / Abc123456!
+### Lavandero: lavandero1 / Abc123456!
+### ============================================================
+
+@baseUrl = http://localhost:3000
+
+### ============================================================
+### 1. REGISTRO DE CLIENTE (público)
+### ============================================================
+### ✅ El frontend envía rol: CLIENTE
+
+POST {{baseUrl}}/usuarios/cliente
+Content-Type: application/json
+
+{
+  "id": "12345678901",
+  "nombreUsuario": "juanperez",
+  "password": "Abc123456!",
+  "nombre": "Juan Pérez",
+  "fechaNacimiento": "1990-01-01",
+  "correo": "juan@email.com",
+  "rol": "CLIENTE"
+}
+
+### ============================================================
+### 2. REGISTRO DE OTRO CLIENTE
+### ============================================================
+
+POST {{baseUrl}}/usuarios/cliente
+Content-Type: application/json
+
+{
+  "id": "98765432109",
+  "nombreUsuario": "mariagarcia",
+  "password": "Abc123456!",
+  "nombre": "María García",
+  "fechaNacimiento": "1992-08-20",
+  "correo": "maria@email.com",
+  "rol": "CLIENTE"
+}
+
+### ============================================================
+### 3. LOGIN (público) - Obtiene token en cookie
+### ============================================================
+
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "juanperez",
+  "password": "Abc123456!"
+}
+
+### ============================================================
+### 4. VER MI PERFIL (requiere autenticación)
+### ============================================================
+
+GET {{baseUrl}}/usuarios/perfil
+
+### ============================================================
+### 5. ACTUALIZAR PERFIL PROPIO
+### ============================================================
+
+PUT {{baseUrl}}/usuarios/perfil
+Content-Type: application/json
+
+{
+  "nombre": "Juan Carlos Pérez",
+  "correo": "juancarlos@email.com",
+  "nombreUsuario": "juanperez"
+}
+
+### ============================================================
+### 6. CAMBIAR CONTRASEÑA
+### ============================================================
+
+PATCH {{baseUrl}}/usuarios/perfil/password
+Content-Type: application/json
+
+{
+  "contraseñaActual": "Xyz789012!",
+  "nuevaContraseña": "Abc123456!",
+  "confirmarContraseña": "Abc123456!"
+}
+
+### ============================================================
+### 7. ACTUALIZAR FOTO DE PERFIL
+### ============================================================
+### ✅ Enviar archivo con key "fotoPerfil"
+
+PATCH {{baseUrl}}/usuarios/perfil/foto
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="fotoPerfil"; filename="perfil.jpg"
+Content-Type: image/jpeg
+
+< C:\Users\Jonathan\Pictures\Saved Pictures\20241.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### ============================================================
+### 8. VER PERFIL DE OTRO USUARIO (debe fallar)
+### ============================================================
+### ❌ Un cliente no puede ver otro perfil
+
+GET {{baseUrl}}/usuarios/cliente/98765432109
+
+### ============================================================
+### 9. CLIENTE ELIMINA SU CUENTA (debe funcionar)
+### ============================================================
+
+DELETE {{baseUrl}}/usuarios/cliente/12345678901
+
+### ============================================================
+### 10. CLIENTE INTENTA ELIMINAR OTRA CUENTA (debe fallar)
+### ============================================================
+### ❌ No puede eliminar a otro
+
+DELETE {{baseUrl}}/usuarios/cliente/98765432109
+
+### ============================================================
+### 11. LOGOUT
+### ============================================================
+
+POST {{baseUrl}}/auth/logout
+
+### ============================================================
+### 12. CREAR ADMINISTRADOR (requiere token de admin)
+### ============================================================
+### ⚠️ PRIMERO: Debe existir un admin en la BD
+
+POST {{baseUrl}}/usuarios/empleado
+Content-Type: application/json
+
+{
+  "id": "11111111111",
+  "nombreUsuario": "admin",
+  "password": "Abc123456!",
+  "nombre": "Administrador Principal",
+  "fechaNacimiento": "1985-01-01",
+  "correo": "admin@lavarapido.com",
+  "rol": "ADMINISTRADOR"
+}
+
+### ============================================================
+### 13. LOGIN DE ADMIN
+### ============================================================
+
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "admin",
+  "password": "Abc123456!"
+}
+
+### ============================================================
+### 14. ADMIN CREA LAVANDERO
+### ============================================================
+
+POST {{baseUrl}}/usuarios/empleado
+Content-Type: application/json
+
+{
+  "id": "22222222222",
+  "nombreUsuario": "lavandero1",
+  "password": "Abc123456!",
+  "nombre": "Carlos Rodríguez",
+  "fechaNacimiento": "1988-03-10",
+  "correo": "carlos@lavarapido.com",
+  "rol": "LAVANDERO"
+}
+
+### ============================================================
+### 15. ADMIN CREA CONDUCTOR
+### ============================================================
+
+POST {{baseUrl}}/usuarios/empleado
+Content-Type: application/json
+
+{
+  "id": "44444444444",
+  "nombreUsuario": "conductor1",
+  "password": "Abc123456!",
+  "nombre": "Pedro Sánchez",
+  "fechaNacimiento": "1987-11-30",
+  "correo": "pedro@lavarapido.com",
+  "rol": "CONDUCTOR"
+}
+
+### ============================================================
+### 16. ADMIN CREA OTRO ADMINISTRADOR
+### ============================================================
+
+POST {{baseUrl}}/usuarios/empleado
+Content-Type: application/json
+
+{
+  "id": "55555555555",
+  "nombreUsuario": "admin2",
+  "password": "Abc123456!",
+  "nombre": "Administrador Secundario",
+  "fechaNacimiento": "1990-01-01",
+  "correo": "admin2@lavarapido.com",
+  "rol": "ADMINISTRADOR"
+}
+
+### ============================================================
+### 17. ADMIN ACTUALIZAR USUARIO
+### ============================================================
+
+PUT {{baseUrl}}/usuarios/admin/22222222222
+Content-Type: application/json
+
+{
+  "nombre": "Carlos Rodríguez Actualizado",
+  "correo": "carlos.actualizado@lavarapido.com"
+}
+
+### ============================================================
+### 18. ADMIN ACTUALIZAR ROL DE USUARIO
+### ============================================================
+
+PUT {{baseUrl}}/usuarios/admin/44444444444
+Content-Type: application/json
+
+{
+  "rol": "LAVANDERO"
+}
+
+### ============================================================
+### 19. ADMIN INTENTA ACTUALIZAR SU PROPIO ROL (debe fallar - 403)
+### ============================================================
+
+PUT {{baseUrl}}/usuarios/admin/11111111111
+Content-Type: application/json
+
+{
+  "rol": "CLIENTE"
+}
+
+### ============================================================
+### 20. ADMIN INTENTA CREAR CLIENTE (debe fallar)
+### ============================================================
+### ❌ El Guard de Roles solo permite ADMINISTRADOR
+###    El endpoint /empleado es solo para empleados
+
+POST {{baseUrl}}/usuarios/empleado
+Content-Type: application/json
+
+{
+  "id": "99999999999",
+  "nombreUsuario": "cliente",
+  "password": "Abc123456!",
+  "nombre": "Cliente",
+  "fechaNacimiento": "1990-01-01",
+  "correo": "cliente@email.com",
+  "rol": "CLIENTE"
+}
+
+### ============================================================
+### 21. ADMIN ELIMINA LAVANDERO
+### ============================================================
+
+DELETE {{baseUrl}}/usuarios/empleado/22222222222
+
+### ============================================================
+### 22. ADMIN ELIMINA CONDUCTOR
+### ============================================================
+
+DELETE {{baseUrl}}/usuarios/empleado/44444444444
+
+### ============================================================
+### 23. ADMIN ELIMINA ADMINISTRADOR SECUNDARIO
+### ============================================================
+
+DELETE {{baseUrl}}/usuarios/administrador/55555555555
+
+### ============================================================
+### 24. ADMIN INTENTA ELIMINAR AL ÚNICO ADMIN (debe fallar)
+### ============================================================
+### ❌ No se puede eliminar el único administrador
+
+DELETE {{baseUrl}}/usuarios/administrador/11111111111
+
+### ============================================================
+### 25. LISTAR TODOS LOS USUARIOS (solo admin)
+### ============================================================
+
+GET {{baseUrl}}/usuarios
+
+### ============================================================
+### 26. LISTAR SOLO CLIENTES (solo admin)
+### ============================================================
+
+GET {{baseUrl}}/usuarios?rol=CLIENTE
+
+### ============================================================
+### 27. LISTAR SOLO LAVANDEROS (solo admin)
+### ============================================================
+
+GET {{baseUrl}}/usuarios?rol=LAVANDERO
+
+### ============================================================
+### 28. LISTAR SOLO CONDUCTORES (solo admin)
+### ============================================================
+
+GET {{baseUrl}}/usuarios?rol=CONDUCTOR
+
+### ============================================================
+### 29. LISTAR SOLO ADMINISTRADORES (solo admin)
+### ============================================================
+
+GET {{baseUrl}}/usuarios?rol=ADMINISTRADOR
+
+### ============================================================
+### 30. ADMIN VER CUALQUIER USUARIO POR ID
+### ============================================================
+
+GET {{baseUrl}}/usuarios/admin/12345678901
+
+### ============================================================
+### 31. ERROR - CORREO DUPLICADO
+### ============================================================
+### ❌ 409 Conflict
+
+POST {{baseUrl}}/usuarios/cliente
+Content-Type: application/json
+
+{
+  "id": "77777777777",
+  "nombreUsuario": "usuarioduplicado",
+  "password": "Abc123456!",
+  "nombre": "Usuario Duplicado",
+  "fechaNacimiento": "1990-01-01",
+  "correo": "admin@lavarapido.com",
+  "rol": "CLIENTE"
+}
+
+### ============================================================
+### 32. ERROR - USUARIO DUPLICADO
+### ============================================================
+### ❌ 409 Conflict
+
+POST {{baseUrl}}/usuarios/cliente
+Content-Type: application/json
+
+{
+  "id": "88888888888",
+  "nombreUsuario": "admin",
+  "password": "Abc123456!",
+  "nombre": "Usuario Duplicado",
+  "fechaNacimiento": "1990-01-01",
+  "correo": "otro@email.com",
+  "rol": "CLIENTE"
+}
+
+### ============================================================
+### 33. ERROR - MENOR DE EDAD
+### ============================================================
+### ❌ 400 Bad Request
+
+POST {{baseUrl}}/usuarios/cliente
+Content-Type: application/json
+
+{
+  "id": "99999999999",
+  "nombreUsuario": "menor",
+  "password": "Abc123456!",
+  "nombre": "Menor de Edad",
+  "fechaNacimiento": "2010-01-01",
+  "correo": "menor@email.com",
+  "rol": "CLIENTE"
+}
+
+### ============================================================
+### 34. ERROR - ID INVÁLIDO
+### ============================================================
+### ❌ 400 Bad Request
+
+POST {{baseUrl}}/usuarios/cliente
+Content-Type: application/json
+
+{
+  "id": "12345",
+  "nombreUsuario": "idcorto",
+  "password": "Abc123456!",
+  "nombre": "ID Corto",
+  "fechaNacimiento": "1990-01-01",
+  "correo": "idcorto@email.com",
+  "rol": "CLIENTE"
+}
+
+### ============================================================
+### 35. ERROR - CONTRASEÑA DÉBIL
+### ============================================================
+### ❌ 400 Bad Request
+
+POST {{baseUrl}}/usuarios/cliente
+Content-Type: application/json
+
+{
+  "id": "66666666666",
+  "nombreUsuario": "passdebil",
+  "password": "12345678",
+  "nombre": "Pass Débil",
+  "fechaNacimiento": "1990-01-01",
+  "correo": "passdebil@email.com",
+  "rol": "CLIENTE"
+}
+
+### ============================================================
+### 36. LOGOUT ADMIN
+### ============================================================
+
+POST {{baseUrl}}/auth/logout
+
+### ============================================================
+### 37. LOGIN CONDUCTOR
+### ============================================================
+
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "conductor1",
+  "password": "Abc123456!"
+}
+
+### ============================================================
+### 38. CONDUCTOR VER SU PERFIL
+### ============================================================
+
+GET {{baseUrl}}/usuarios/perfil
+
+### ============================================================
+### 39. CONDUCTOR ACTUALIZAR SU PERFIL
+### ============================================================
+
+PUT {{baseUrl}}/usuarios/perfil
+Content-Type: application/json
+
+{
+  "nombre": "Pedro Sánchez González",
+  "correo": "pedro.sanchez@lavarapido.com"
+}
+
+### ============================================================
+### 40. CONDUCTOR CAMBIAR CONTRASEÑA
+### ============================================================
+
+PATCH {{baseUrl}}/usuarios/perfil/password
+Content-Type: application/json
+
+{
+  "contraseñaActual": "Xyz789012!",
+  "nuevaContraseña": "Abc123456!",
+  "confirmarContraseña": "Abc123456!"
+}
+
+### ============================================================
+### 41. LOGOUT CONDUCTOR
+### ============================================================
+
+POST {{baseUrl}}/auth/logout
+
+### ============================================================
+### 42. ERROR - CONTRASEÑA ACTUAL INCORRECTA
+### ============================================================
+### ❌ 401 Unauthorized
+
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "juanperez",
+  "password": "Abc123456!"
+}
+###
+PATCH {{baseUrl}}/usuarios/perfil/password
+Content-Type: application/json
+
+{
+  "contraseñaActual": "PasswordIncorrecta!",
+  "nuevaContraseña": "Xyz789012!",
+  "confirmarContraseña": "Xyz789012!"
+}
+
+### ============================================================
+### 43. ERROR - CONTRASEÑAS NO COINCIDEN
+### ============================================================
+### ❌ 400 Bad Request
+
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "juanperez",
+  "password": "Abc123456!"
+}
+###
+PATCH {{baseUrl}}/usuarios/perfil/contraseña
+Content-Type: application/json
+
+{
+  "contraseñaActual": "Abc123456!",
+  "nuevaContraseña": "Xyz789012!",
+  "confirmarContraseña": "Xyz789013!"
+}
+
+### ============================================================
+### 44. INTENTAR ACCEDER SIN AUTENTICACIÓN (401)
+### ============================================================
+
+GET {{baseUrl}}/usuarios/perfil
+
+### ============================================================
+### 45. LOGOUT FINAL
+### ============================================================
+
+POST {{baseUrl}}/auth/logout
+
+### ============================================================
+### NOTAS IMPORTANTES:
+### ============================================================
+### 1. Cada grupo de pruebas debe ejecutarse en orden
+### 2. Si una prueba falla, verifica que el usuario tenga el rol correcto
+### 3. Los IDs (12345678901, etc.) pueden variar
+### 4. Asegúrate de tener los usuarios creados en la BD
+### 5. Para pruebas de foto, necesitas tener un archivo perfil.jpg en el directorio
+### 6. Los endpoints nuevos:
+###    - GET /usuarios/perfil (ver perfil propio)
+###    - PUT /usuarios/perfil (actualizar perfil)
+###    - PATCH /usuarios/perfil/contraseña (cambiar contraseña)
+###    - PATCH /usuarios/perfil/foto (actualizar foto)
+###    - PUT /usuarios/admin/:id (admin actualiza usuario)
+### ============================================================

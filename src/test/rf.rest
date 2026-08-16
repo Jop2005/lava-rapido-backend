@@ -1,0 +1,327 @@
+### ============================================================
+### REQUISITOS FUNCIONALES - LavaRápido
+### ============================================================
+### RF 1-22: Todas las pruebas de requisitos funcionales
+### ============================================================
+
+@baseUrl = http://localhost:3000
+
+### ============================================================
+### RF 4 - REGISTRO DE CLIENTE
+### RF 6 - VALIDACIÓN DE MAYORÍA DE EDAD
+### ============================================================
+
+### RF 4: Proveer al cliente capacidad de escribir nombre usuario,
+###      nombre, fecha de nacimiento, correo y foto de perfil (opcional)
+### RF 6: Cuando se trata de un nuevo cliente, validar que sea mayor de edad
+
+### ✅ PRUEBA EXITOSA - Mayor de edad
+POST {{baseUrl}}/usuarios/cliente
+Content-Type: application/json
+
+{
+  "id": "12345678901",
+  "nombreUsuario": "juanperez",
+  "password": "Abc123456!",
+  "nombre": "Juan Pérez",
+  "fechaNacimiento": "1990-01-01",
+  "correo": "juan@email.com",
+  "rol": "CLIENTE"
+}
+
+### ❌ PRUEBA FALLIDA - Menor de edad (debe devolver 400)
+POST {{baseUrl}}/usuarios/cliente
+Content-Type: application/json
+
+{
+  "id": "99999999999",
+  "nombreUsuario": "menor",
+  "password": "Abc123456!",
+  "nombre": "Menor de Edad",
+  "fechaNacimiento": "2010-01-01",
+  "correo": "menor@email.com",
+  "rol": "CLIENTE"
+}
+
+### ============================================================
+### RF 5 - AUTENTICACIÓN
+### ============================================================
+
+### RF 5: Proveer al usuario capacidad de autenticarse
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "juanperez",
+  "password": "Xyz789012!"
+}
+
+### ============================================================
+### RF 1, 2, 3, 13 - CREAR SOLICITUD
+### ============================================================
+
+### RF 1: Proveer al cliente capacidad de introducir datos para la solicitud
+### RF 2: Proveer al cliente capacidad de introducir datos para la recogida
+### RF 3: Proveer al cliente capacidad de indicar tratamiento especial
+### RF 13: Generar código único de seguimiento y cambiar estado a SOLICITADA
+
+POST {{baseUrl}}/solicitudes
+Content-Type: application/json
+
+{
+  "lineas": [
+    { "tipoPrenda": "Camisa", "cantidad": 3 },
+    { "tipoPrenda": "Pantalón", "cantidad": 2 }
+  ],
+  "tratamientoEspecial": "PLANCHADO",
+  "lugarRecogida": "Calle Falsa 123, Ciudad",
+  "fechaRecogida": "2026-08-20",
+  "horaRecogida": "10:30",
+  "lugarEntrega": "Calle Verdadera 456, Ciudad"
+}
+
+### GUARDA EL CÓDIGO DE LA RESPUESTA (ej: LAV-2026-08-00001)
+
+### ============================================================
+### RF 11 - ENVIAR CORREO DE CONFIRMACIÓN
+### ============================================================
+
+### RF 11: Cuando se confirme una solicitud, enviar correo de confirmación
+### ✅ Se envía automáticamente al crear solicitud
+### Revisar consola del servidor para ver el correo mock
+
+### ============================================================
+### RF 8 - CONSULTAR SOLICITUD (Cliente)
+### ============================================================
+
+### RF 8: Proveer al cliente capacidad de consultar su solicitud
+GET {{baseUrl}}/solicitudes/cliente/activa
+
+### ============================================================
+### RF 7 - CAMBIAR CREDENCIALES
+### ============================================================
+
+### RF 7: Proveer al usuario capacidad de modificar credenciales
+
+### ✅ Actualizar perfil
+PUT {{baseUrl}}/usuarios/perfil
+Content-Type: application/json
+
+{
+  "nombre": "Juan Carlos Pérez",
+  "correo": "juancarlos@email.com"
+}
+
+### ✅ Cambiar contraseña
+PATCH {{baseUrl}}/usuarios/perfil/password
+Content-Type: application/json
+
+{
+  "contraseñaActual": "Xyz789012!",
+  "nuevaContraseña": "Abc123456!",
+  "confirmarContraseña": "Abc123456!"
+}
+
+### ============================================================
+### RF 9 - ADMIN CONSULTA SOLICITUDES
+### ============================================================
+
+### RF 9: Proveer al administrador capacidad de consultar todas las solicitudes
+### ✅ Login admin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "admin",
+  "password": "Abc123456!"
+}
+
+### ✅ Listar todas las solicitudes
+GET {{baseUrl}}/solicitudes
+
+### ✅ Filtrar por estado
+GET {{baseUrl}}/solicitudes?estado=SOLICITADA
+
+### ============================================================
+### RF 10, 17 - ADMIN GESTIONA ADMINISTRADORES
+### ============================================================
+
+### RF 10: Proveer al administrador capacidad de crear administrador
+### RF 17: Proveer al administrador capacidad de eliminar administrador
+
+### ✅ Crear administrador
+POST {{baseUrl}}/usuarios/empleado
+Content-Type: application/json
+
+{
+  "id": "55555555555",
+  "nombreUsuario": "admin2",
+  "password": "Abc123456!",
+  "nombre": "Admin Secundario",
+  "fechaNacimiento": "1990-01-01",
+  "correo": "admin2@lavarapido.com",
+  "rol": "ADMINISTRADOR"
+}
+
+### ✅ Eliminar administrador
+DELETE {{baseUrl}}/usuarios/administrador/55555555555
+
+### ============================================================
+### RF 18, 19 - ADMIN GESTIONA LAVANDEROS
+### ============================================================
+
+### RF 18: Proveer al administrador capacidad de crear lavandero
+### RF 19: Proveer al administrador capacidad de eliminar lavandero
+
+### ✅ Crear lavandero
+POST {{baseUrl}}/usuarios/empleado
+Content-Type: application/json
+
+{
+  "id": "22222222222",
+  "nombreUsuario": "lavandero1",
+  "password": "Abc123456!",
+  "nombre": "Carlos Rodríguez",
+  "fechaNacimiento": "1988-03-10",
+  "correo": "carlos@lavarapido.com",
+  "rol": "LAVANDERO"
+}
+
+### ✅ Eliminar lavandero
+DELETE {{baseUrl}}/usuarios/empleado/22222222222
+
+### ============================================================
+### RF 20, 21 - ADMIN GESTIONA CONDUCTORES
+### ============================================================
+
+### RF 20: Proveer al administrador capacidad de crear conductor
+### RF 21: Proveer al administrador capacidad de eliminar conductor
+
+### ✅ Crear conductor
+POST {{baseUrl}}/usuarios/empleado
+Content-Type: application/json
+
+{
+  "id": "33333333333",
+  "nombreUsuario": "conductor1",
+  "password": "Abc123456!",
+  "nombre": "Pedro Sánchez",
+  "fechaNacimiento": "1987-11-30",
+  "correo": "pedro@lavarapido.com",
+  "rol": "CONDUCTOR"
+}
+
+### ✅ Eliminar conductor
+DELETE {{baseUrl}}/usuarios/empleado/33333333333
+
+### ============================================================
+### RF 12, 14 - LAVANDERO REGISTRA RECEPCIÓN
+### ============================================================
+
+### RF 12: Proveer al lavandero capacidad de registrar recepción de ropa
+### RF 14: Cuando se registre recepción, actualizar estado a EN_PROCESO
+
+### ✅ Login lavandero
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "lavandero1",
+  "password": "Abc123456!"
+}
+
+### ✅ Registrar recepción (cambiar a EN_PROCESO)
+### 🔴 CAMBIA EL ID POR EL QUE SE GENERÓ EN RF 1,2,3,13
+PUT {{baseUrl}}/solicitudes/LAV-2026-08-00001/en-proceso
+
+### ============================================================
+### RF 15 - CONDUCTOR REGISTRA RECOGIDA
+### ============================================================
+
+### RF 15: Proveer al conductor capacidad de registrar recogida
+
+### ✅ Login conductor
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "conductor1",
+  "password": "Abc123456!"
+}
+
+### ✅ Registrar recogida
+### 🔴 CAMBIA EL ID POR EL QUE SE GENERÓ AL CREAR RECOGIDA
+PUT {{baseUrl}}/recogidas/conductor/20/realizar
+
+### ============================================================
+### RF 16, 22 - CONDUCTOR REGISTRA ENTREGA
+### ============================================================
+
+### RF 16: Proveer al conductor capacidad de registrar entrega
+### RF 22: Cuando se registre entrega, actualizar estado a COMPLETADA
+
+### ✅ Login conductor
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "conductor1",
+  "password": "Abc123456!"
+}
+
+### ✅ Registrar entrega
+### 🔴 CAMBIA EL ID POR EL QUE SE GENERÓ AL CREAR ENTREGA
+PUT {{baseUrl}}/entregas/conductor/7/realizar
+
+### ============================================================
+### RF 8 (complemento) - CONSULTAR SOLICITUD POR ID
+### ============================================================
+
+### RF 8: Proveer al cliente capacidad de consultar su solicitud
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "juanperez",
+  "password": "Abc123456!"
+}
+
+### ✅ Ver solicitud por ID
+### 🔴 CAMBIA EL ID POR EL QUE SE GENERÓ
+GET {{baseUrl}}/solicitudes/cliente/LAV-2026-08-00001
+
+### ✅ Ver todas mis solicitudes
+GET {{baseUrl}}/solicitudes/cliente
+
+### ============================================================
+### LOGOUT FINAL
+### ============================================================
+
+POST {{baseUrl}}/auth/logout
+
+### ============================================================
+### RESUMEN RF:
+### ============================================================
+### RF 1  ✅ - Proveer al cliente capacidad de introducir datos para solicitud
+### RF 2  ✅ - Proveer al cliente capacidad de introducir datos para recogida
+### RF 3  ✅ - Proveer al cliente capacidad de indicar tratamiento especial
+### RF 4  ✅ - Proveer al cliente capacidad de registrarse
+### RF 5  ✅ - Proveer al usuario capacidad de autenticarse
+### RF 6  ✅ - Validar que sea mayor de edad
+### RF 7  ✅ - Proveer al usuario capacidad de modificar credenciales
+### RF 8  ✅ - Proveer al cliente capacidad de consultar su solicitud
+### RF 9  ✅ - Proveer al administrador capacidad de consultar solicitudes
+### RF 10 ✅ - Proveer al administrador capacidad de crear administrador
+### RF 11 ✅ - Enviar correo de confirmación
+### RF 12 ✅ - Proveer al lavandero capacidad de registrar recepción
+### RF 13 ✅ - Generar código único de seguimiento
+### RF 14 ✅ - Actualizar estado a EN_PROCESO al registrar recepción
+### RF 15 ✅ - Proveer al conductor capacidad de registrar recogida
+### RF 16 ✅ - Proveer al conductor capacidad de registrar entrega
+### RF 17 ✅ - Proveer al administrador capacidad de eliminar administrador
+### RF 18 ✅ - Proveer al administrador capacidad de crear lavandero
+### RF 19 ✅ - Proveer al administrador capacidad de eliminar lavandero
+### RF 20 ✅ - Proveer al administrador capacidad de crear conductor
+### RF 21 ✅ - Proveer al administrador capacidad de eliminar conductor
+### RF 22 ✅ - Actualizar estado a COMPLETADA al registrar entrega
+### ============================================================

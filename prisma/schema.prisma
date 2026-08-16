@@ -1,0 +1,161 @@
+// ============================================================
+// 1. ENUMS
+// ============================================================
+
+enum Rol {
+  CLIENTE
+  ADMINISTRADOR
+  LAVANDERO
+  CONDUCTOR
+}
+
+enum EstadoSolicitud {
+  SOLICITADA
+  EN_PROCESO
+  COMPLETADA
+}
+
+enum TratamientoEspecial {
+  NINGUNO
+  PLANCHADO
+  DOBLADO
+  AMBOS
+}
+
+enum EstadoRecogida {
+  PENDIENTE
+  REALIZADA
+}
+
+enum EstadoEntrega {
+  PENDIENTE
+  REALIZADA
+}
+
+// ============================================================
+// 2. GENERATOR Y DATASOURCE
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// 3. MODELOS
+// ============================================================
+
+model Usuario {
+  id               String   @id
+  nombreUsuario    String   @unique
+  contraseña       String
+  nombre           String
+  fechaNacimiento  DateTime
+  correo           String   @unique
+  fotoPerfil       String?
+  rol              Rol
+
+  // Relaciones
+  solicitudes      Solicitud[]
+  recogidas        Recogida[]
+  entregas         Entrega[]
+  historialEstados HistorialEstado[]
+
+  @@index([correo])
+  @@index([nombreUsuario])
+}
+
+model Solicitud {
+  codigoSeguimiento   String              @id @default(cuid())
+  fechaCreacion       DateTime            @default(now())
+  estadoActual        EstadoSolicitud
+  tratamientoEspecial TratamientoEspecial @default(NINGUNO)
+
+  idCliente           String
+  cliente             Usuario             @relation(fields: [idCliente], references: [id], onDelete: Cascade)
+
+  // Relaciones
+  lineas              LineaSolicitud[]
+  recogida            Recogida?
+  entrega             Entrega?
+  historialEstados    HistorialEstado[]
+
+  @@index([idCliente])
+  @@index([fechaCreacion])
+}
+
+model LineaSolicitud {
+  idSolicitud    String
+  tipoPrenda     String
+  cantidad       Int
+
+  // Clave primaria compuesta
+  @@id([idSolicitud, tipoPrenda])
+
+  // Relaciones
+  solicitud      Solicitud     @relation(fields: [idSolicitud], references: [codigoSeguimiento], onDelete: Cascade)
+  tipo           TipoDePrenda  @relation(fields: [tipoPrenda], references: [tipo], onDelete: Restrict)
+
+  @@index([idSolicitud])
+}
+
+model TipoDePrenda {
+  tipo   String            @id
+  lineas LineaSolicitud[]
+}
+
+model Recogida {
+  id           Int            @id @default(autoincrement())
+  lugar        String
+  fecha        DateTime
+  hora         String
+  estado       EstadoRecogida @default(PENDIENTE)
+
+  idSolicitud  String         @unique  // ← Garantiza relación 1:1 con Solicitud
+  solicitud    Solicitud      @relation(fields: [idSolicitud], references: [codigoSeguimiento], onDelete: Cascade)
+
+  idConductor  String?
+  conductor    Usuario?       @relation(fields: [idConductor], references: [id], onDelete: SetNull)
+
+  @@index([idSolicitud])
+  @@index([idConductor])
+  @@index([estado])
+}
+
+model Entrega {
+  id           Int            @id @default(autoincrement())
+  lugar        String
+  fecha        DateTime
+  estado       EstadoEntrega  @default(PENDIENTE)
+
+  idSolicitud  String         @unique  // ← Garantiza relación 1:1 con Solicitud
+  solicitud    Solicitud      @relation(fields: [idSolicitud], references: [codigoSeguimiento], onDelete: Cascade)
+
+  idConductor  String?
+  conductor    Usuario?       @relation(fields: [idConductor], references: [id], onDelete: SetNull)
+
+  @@index([idSolicitud])
+  @@index([idConductor])
+  @@index([estado])
+}
+
+model HistorialEstado {
+  idSolicitud  String
+  fechaHora    DateTime @default(now())
+  estado       EstadoSolicitud
+
+  // Clave primaria compuesta
+  @@id([idSolicitud, fechaHora])
+
+  // Relaciones
+  solicitud    Solicitud @relation(fields: [idSolicitud], references: [codigoSeguimiento], onDelete: Cascade)
+  idResponsable String
+  responsable   Usuario  @relation(fields: [idResponsable], references: [id], onDelete: Restrict)
+
+  @@index([idSolicitud])
+  @@index([idResponsable])
+}

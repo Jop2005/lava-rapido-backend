@@ -1,0 +1,241 @@
+### ============================================================
+### PRUEBAS DE ENTREGA - LavaRápido
+### INCLUYE SEGURIDAD (JWT + Roles)
+### ============================================================
+### USUARIOS EN BD:
+### Cliente1: juanperez / Abc123456!
+### Admin: admin / Abc123456!
+### Conductor1: conductor1 / Abc123456!
+### Conductor2: conductor2 / Abc123456!
+### ============================================================
+
+@baseUrl = http://localhost:3000
+
+### ============================================================
+### 1. CREAR SOLICITUD (para tener entregas)
+### ============================================================
+
+### 1.1 LOGIN CLIENTE 1
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "juanperez",
+  "password": "Abc123456!"
+}
+
+### 1.2 CREAR SOLICITUD 1
+POST {{baseUrl}}/solicitudes
+Content-Type: application/json
+
+{
+  "lineas": [
+    { "tipoPrenda": "Camisa", "cantidad": 3 },
+    { "tipoPrenda": "Pantalón", "cantidad": 2 }
+  ],
+  "tratamientoEspecial": "PLANCHADO",
+  "lugarRecogida": "Calle Falsa 123, Ciudad",
+  "fechaRecogida": "2026-08-20",
+  "horaRecogida": "10:30",
+  "lugarEntrega": "Calle Verdadera 456, Ciudad"
+}
+
+### GUARDA EL CÓDIGO (ej: LAV-2026-08-00007)
+
+### 1.3 CREAR SOLICITUD 2
+POST {{baseUrl}}/solicitudes
+Content-Type: application/json
+
+{
+  "lineas": [
+    { "tipoPrenda": "Camisa", "cantidad": 1 }
+  ],
+  "tratamientoEspecial": "NINGUNO",
+  "lugarRecogida": "Calle Falsa 456, Ciudad",
+  "fechaRecogida": "2026-08-21",
+  "horaRecogida": "14:00"
+}
+
+### GUARDA EL CÓDIGO (ej: LAV-2026-08-00008)
+
+### 1.4 LOGOUT CLIENTE 1
+POST {{baseUrl}}/auth/logout
+
+### ============================================================
+### 2. ADMIN - GESTIÓN DE ENTREGAS
+### ============================================================
+
+### 2.1 LOGIN ADMIN
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "admin",
+  "password": "Abc123456!"
+}
+
+### 2.2 ADMIN LISTAR TODAS LAS ENTREGAS
+GET {{baseUrl}}/entregas
+
+### 2.3 ADMIN VER ENTREGA POR ID
+### 🔴 CAMBIA EL ID POR EL QUE SE GENERÓ (ej: 1)
+GET {{baseUrl}}/entregas/1
+
+### 2.4 ADMIN VER ENTREGA POR SOLICITUD
+### 🔴 CAMBIA EL ID_SOLICITUD POR EL QUE SE GENERÓ
+GET {{baseUrl}}/entregas/solicitud/LAV-2026-08-00002
+
+### 2.5 ADMIN ASIGNAR CONDUCTOR A ENTREGA
+### 🔴 CAMBIA EL ID POR EL QUE SE GENERÓ (ej: 1)
+PUT {{baseUrl}}/entregas/7/asignar
+Content-Type: application/json
+
+{
+  "idConductor": "33333333333"
+}
+
+### 2.6 ADMIN ELIMINAR ENTREGA (solo PENDIENTE)
+### 🔴 CAMBIA EL ID POR UNA ENTREGA PENDIENTE (ej: 2)
+DELETE {{baseUrl}}/entregas/2
+
+### 2.7 LOGOUT ADMIN
+POST {{baseUrl}}/auth/logout
+
+### ============================================================
+### 3. CONDUCTOR 1 - VER Y REALIZAR SUS ENTREGAS
+### ============================================================
+
+### 3.1 LOGIN CONDUCTOR 1
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "conductor1",
+  "password": "Abc123456!"
+}
+
+### 3.2 CONDUCTOR VER ENTREGAS DISPONIBLES
+GET {{baseUrl}}/entregas/conductor/disponibles
+
+### 3.3 CONDUCTOR VER MIS ENTREGAS
+GET {{baseUrl}}/entregas/conductor/mis-entregas
+
+### 3.4 CONDUCTOR VER ENTREGA POR ID (SUYA)
+### 🔴 CAMBIA EL ID POR EL QUE LE ASIGNARON (ej: 1)
+GET {{baseUrl}}/entregas/conductor/1
+
+### 3.5 CONDUCTOR VER ENTREGA POR SOLICITUD (SUYA)
+### 🔴 CAMBIA EL ID_SOLICITUD POR EL QUE LE ASIGNARON
+GET {{baseUrl}}/entregas/conductor/solicitud/LAV-2026-08-00007
+
+### 3.6 CONDUCTOR REALIZAR ENTREGA (SUYA)
+### 🔴 CAMBIA EL ID POR EL QUE LE ASIGNARON (ej: 1)
+PUT {{baseUrl}}/entregas/conductor/3/realizar
+
+### 3.7 LOGOUT CONDUCTOR 1
+POST {{baseUrl}}/auth/logout
+
+### ============================================================
+### 4. CONDUCTOR 2 - SEGURIDAD (no puede ver/realizar de otro)
+### ============================================================
+
+### 4.1 LOGIN CONDUCTOR 2
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "conductor2",
+  "password": "Abc123456!"
+}
+
+### 4.2 CONDUCTOR 2 VER ENTREGA DE CONDUCTOR 1 (DEBE FALLAR - 403)
+### 🔴 CAMBIA EL ID POR EL DE CONDUCTOR 1 (ej: 1)
+GET {{baseUrl}}/entregas/conductor/1
+
+### 4.3 CONDUCTOR 2 REALIZAR ENTREGA DE CONDUCTOR 1 (DEBE FALLAR - 403)
+### 🔴 CAMBIA EL ID POR EL DE CONDUCTOR 1 (ej: 1)
+PUT {{baseUrl}}/entregas/conductor/1/realizar
+
+### 4.4 LOGOUT CONDUCTOR 2
+POST {{baseUrl}}/auth/logout
+
+### ============================================================
+### 5. CLIENTE - SIN ACCESO A ENTREGAS
+### ============================================================
+
+### 5.1 LOGIN CLIENTE 1
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "juanperez",
+  "password": "Abc123456!"
+}
+
+### 5.2 CLIENTE INTENTA LISTAR ENTREGAS (DEBE FALLAR - 403)
+GET {{baseUrl}}/entregas
+
+### 5.3 CLIENTE INTENTA VER ENTREGA (DEBE FALLAR - 403)
+GET {{baseUrl}}/entregas/1
+
+### 5.4 LOGOUT CLIENTE 1
+POST {{baseUrl}}/auth/logout
+
+### ============================================================
+### 6. SIN AUTENTICACIÓN - 401
+### ============================================================
+
+### 6.1 LISTAR ENTREGAS SIN AUTENTICACIÓN (401)
+GET {{baseUrl}}/entregas
+
+### 6.2 VER ENTREGA SIN AUTENTICACIÓN (401)
+GET {{baseUrl}}/entregas/1
+
+### 6.3 REALIZAR ENTREGA SIN AUTENTICACIÓN (401)
+PUT {{baseUrl}}/entregas/conductor/1/realizar
+
+### ============================================================
+### 7. PRUEBAS DE VALIDACIÓN - ERRORES ESPERADOS
+### ============================================================
+
+### 7.1 LOGIN ADMIN
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "admin",
+  "password": "Abc123456!"
+}
+
+### 7.2 ASIGNAR CONDUCTOR A ENTREGA INEXISTENTE (404)
+PUT {{baseUrl}}/entregas/999/asignar
+Content-Type: application/json
+
+{
+  "idConductor": "44444444444"
+}
+
+### 7.3 ASIGNAR CONDUCTOR A ENTREGA YA REALIZADA (400)
+### 🔴 CAMBIA EL ID POR UNA ENTREGA YA REALIZADA
+PUT {{baseUrl}}/entregas/1/asignar
+Content-Type: application/json
+
+{
+  "idConductor": "44444444444"
+}
+
+### 7.4 ASIGNAR CONDUCTOR A ENTREGA YA ASIGNADA (409)
+### 🔴 CAMBIA EL ID POR UNA ENTREGA YA ASIGNADA
+PUT {{baseUrl}}/entregas/1/asignar
+Content-Type: application/json
+
+{
+  "idConductor": "33333333333"
+}
+
+### 7.5 ELIMINAR ENTREGA YA REALIZADA (400)
+### 🔴 CAMBIA EL ID POR UNA ENTREGA YA REALIZADA
+DELETE {{baseUrl}}/entregas/1
+
+### 7.6 LOGOUT ADMIN
+POST {{baseUrl}}/auth/logout

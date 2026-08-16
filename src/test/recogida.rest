@@ -1,0 +1,241 @@
+### ============================================================
+### PRUEBAS DE RECOGIDA - LavaRápido
+### INCLUYE SEGURIDAD (JWT + Roles)
+### ============================================================
+### USUARIOS EN BD:
+### Cliente1: juanperez / Abc123456!
+### Admin: admin / Abc123456!
+### Conductor1: conductor1 / Abc123456!
+### Conductor2: conductor2 / Abc123456!
+### ============================================================
+
+@baseUrl = http://localhost:3000
+
+### ============================================================
+### 1. CREAR SOLICITUD (para tener recogidas)
+### ============================================================
+
+### 1.1 LOGIN CLIENTE 1
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "juanperez",
+  "password": "Abc123456!"
+}
+
+### 1.2 CREAR SOLICITUD 1
+POST {{baseUrl}}/solicitudes
+Content-Type: application/json
+
+{
+  "lineas": [
+    { "tipoPrenda": "Camisa", "cantidad": 3 },
+    { "tipoPrenda": "Pantalón", "cantidad": 2 }
+  ],
+  "tratamientoEspecial": "PLANCHADO",
+  "lugarRecogida": "Calle Falsa 123, Ciudad",
+  "fechaRecogida": "2026-08-20",
+  "horaRecogida": "10:30",
+  "lugarEntrega": "Calle Verdadera 456, Ciudad"
+}
+
+### GUARDA EL CÓDIGO (ej: LAV-2026-08-00005)
+
+### 1.3 CREAR SOLICITUD 2
+POST {{baseUrl}}/solicitudes
+Content-Type: application/json
+
+{
+  "lineas": [
+    { "tipoPrenda": "Camisa", "cantidad": 1 }
+  ],
+  "tratamientoEspecial": "NINGUNO",
+  "lugarRecogida": "Calle Falsa 456, Ciudad",
+  "fechaRecogida": "2026-08-21",
+  "horaRecogida": "14:00"
+}
+
+### GUARDA EL CÓDIGO (ej: LAV-2026-08-00006)
+
+### 1.4 LOGOUT CLIENTE 1
+POST {{baseUrl}}/auth/logout
+
+### ============================================================
+### 2. ADMIN - GESTIÓN DE RECOGIDAS
+### ============================================================
+
+### 2.1 LOGIN ADMIN
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "admin",
+  "password": "Abc123456!"
+}
+
+### 2.2 ADMIN LISTAR TODAS LAS RECOGIDAS
+GET {{baseUrl}}/recogidas
+
+### 2.3 ADMIN VER RECOGIDA POR ID
+### 🔴 CAMBIA EL ID POR EL QUE SE GENERÓ (ej: 1)
+GET {{baseUrl}}/recogidas/12
+
+### 2.4 ADMIN VER RECOGIDA POR SOLICITUD
+### 🔴 CAMBIA EL ID_SOLICITUD POR EL QUE SE GENERÓ
+GET {{baseUrl}}/recogidas/solicitud/LAV-2026-08-00001
+
+### 2.5 ADMIN ASIGNAR CONDUCTOR A RECOGIDA
+### 🔴 CAMBIA EL ID POR EL QUE SE GENERÓ (ej: 1)
+PUT {{baseUrl}}/recogidas/20/asignar
+Content-Type: application/json
+
+{
+  "idConductor": "33333333333"
+}
+
+### 2.6 ADMIN ELIMINAR RECOGIDA (solo PENDIENTE)
+### 🔴 CAMBIA EL ID POR UNA RECOGIDA PENDIENTE (ej: 2)
+DELETE {{baseUrl}}/recogidas/12
+
+### 2.7 LOGOUT ADMIN
+POST {{baseUrl}}/auth/logout
+
+### ============================================================
+### 3. CONDUCTOR 1 - VER Y REALIZAR SUS RECOGIDAS
+### ============================================================
+
+### 3.1 LOGIN CONDUCTOR 1
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "conductor1",
+  "password": "Abc123456!"
+}
+
+### 3.2 CONDUCTOR VER RECOGIDAS DISPONIBLES
+GET {{baseUrl}}/recogidas/conductor/disponibles
+
+### 3.3 CONDUCTOR VER MIS RECOGIDAS
+GET {{baseUrl}}/recogidas/conductor/mis-recogidas
+
+### 3.4 CONDUCTOR VER RECOGIDA POR ID (SUYA)
+### 🔴 CAMBIA EL ID POR EL QUE LE ASIGNARON (ej: 1)
+GET {{baseUrl}}/recogidas/conductor/13
+
+### 3.5 CONDUCTOR VER RECOGIDA POR SOLICITUD (SUYA)
+### 🔴 CAMBIA EL ID_SOLICITUD POR EL QUE LE ASIGNARON
+GET {{baseUrl}}/recogidas/conductor/solicitud/LAV-2026-08-00004
+
+### 3.6 CONDUCTOR REALIZAR RECOGIDA (SUYA)
+### 🔴 CAMBIA EL ID POR EL QUE LE ASIGNARON (ej: 1)
+PUT {{baseUrl}}/recogidas/conductor/16/realizar
+
+### 3.7 LOGOUT CONDUCTOR 1
+POST {{baseUrl}}/auth/logout
+
+### ============================================================
+### 4. CONDUCTOR 2 - SEGURIDAD (no puede ver/realizar de otro)
+### ============================================================
+
+### 4.1 LOGIN CONDUCTOR 2
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "conductor2",
+  "password": "Abc123456!"
+}
+
+### 4.2 CONDUCTOR 2 VER RECOGIDA DE CONDUCTOR 1 (DEBE FALLAR - 403)
+### 🔴 CAMBIA EL ID POR EL DE CONDUCTOR 1 (ej: 1)
+GET {{baseUrl}}/recogidas/conductor/10
+
+### 4.3 CONDUCTOR 2 REALIZAR RECOGIDA DE CONDUCTOR 1 (DEBE FALLAR - 403)
+### 🔴 CAMBIA EL ID POR EL DE CONDUCTOR 1 (ej: 1)
+PUT {{baseUrl}}/recogidas/conductor/10/realizar
+
+### 4.4 LOGOUT CONDUCTOR 2
+POST {{baseUrl}}/auth/logout
+
+### ============================================================
+### 5. CLIENTE - SIN ACCESO A RECOGIDAS
+### ============================================================
+
+### 5.1 LOGIN CLIENTE 1
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "juanperez",
+  "password": "Abc123456!"
+}
+
+### 5.2 CLIENTE INTENTA LISTAR RECOGIDAS (DEBE FALLAR - 403)
+GET {{baseUrl}}/recogidas
+
+### 5.3 CLIENTE INTENTA VER RECOGIDA (DEBE FALLAR - 403)
+GET {{baseUrl}}/recogidas/1
+
+### 5.4 LOGOUT CLIENTE 1
+POST {{baseUrl}}/auth/logout
+
+### ============================================================
+### 6. SIN AUTENTICACIÓN - 401
+### ============================================================
+
+### 6.1 LISTAR RECOGIDAS SIN AUTENTICACIÓN (401)
+GET {{baseUrl}}/recogidas
+
+### 6.2 VER RECOGIDA SIN AUTENTICACIÓN (401)
+GET {{baseUrl}}/recogidas/1
+
+### 6.3 REALIZAR RECOGIDA SIN AUTENTICACIÓN (401)
+PUT {{baseUrl}}/recogidas/conductor/1/realizar
+
+### ============================================================
+### 7. PRUEBAS DE VALIDACIÓN - ERRORES ESPERADOS
+### ============================================================
+
+### 7.1 LOGIN ADMIN
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "admin",
+  "password": "Abc123456!"
+}
+
+### 7.2 ASIGNAR CONDUCTOR A RECOGIDA INEXISTENTE (404)
+PUT {{baseUrl}}/recogidas/999/asignar
+Content-Type: application/json
+
+{
+  "idConductor": "33333333333"
+}
+
+### 7.3 ASIGNAR CONDUCTOR A RECOGIDA YA REALIZADA (400)
+### 🔴 CAMBIA EL ID POR UNA RECOGIDA YA REALIZADA
+PUT {{baseUrl}}/recogidas/10/asignar
+Content-Type: application/json
+
+{
+  "idConductor": "33333333333"
+}
+
+### 7.4 ASIGNAR CONDUCTOR A RECOGIDA YA ASIGNADA (409)
+### 🔴 CAMBIA EL ID POR UNA RECOGIDA YA ASIGNADA
+PUT {{baseUrl}}/recogidas/10/asignar
+Content-Type: application/json
+
+{
+  "idConductor": "33333333333"
+}
+
+### 7.5 ELIMINAR RECOGIDA YA REALIZADA (400)
+### 🔴 CAMBIA EL ID POR UNA RECOGIDA YA REALIZADA
+DELETE {{baseUrl}}/recogidas/10
+
+### 7.6 LOGOUT ADMIN
+POST {{baseUrl}}/auth/logout

@@ -1,0 +1,216 @@
+### ============================================================
+### PRUEBAS DE TIPOS DE PRENDA - LavaRápido
+### ============================================================
+### USUARIOS EN BD:
+### Admin: admin / Abc123456!
+### Cliente: juanperez / Abc123456!
+### ============================================================
+
+@baseUrl = http://localhost:3000
+
+### ============================================================
+### 1. LISTAR TIPOS (Público - sin autenticación)
+### ============================================================
+
+GET {{baseUrl}}/tipos-prenda
+
+### ✅ Debería devolver: ["Camisa", "Pantalón", "Chaqueta", ...]
+
+
+### ============================================================
+### 2. LOGIN ADMIN
+### ============================================================
+
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "admin",
+  "password": "Abc123456!"
+}
+
+
+### ============================================================
+### 3. CREAR NUEVO TIPO (Admin)
+### ============================================================
+
+POST {{baseUrl}}/tipos-prenda
+Content-Type: application/json
+
+{
+  "tipo": "Bufanda"
+}
+
+### ✅ Debería devolver: 201 Created { "tipo": "Bufanda" }
+
+
+### ============================================================
+### 4. CREAR TIPO DUPLICADO (Debe fallar - 409)
+### ============================================================
+
+POST {{baseUrl}}/tipos-prenda
+Content-Type: application/json
+
+{
+  "tipo": "Bufanda"
+}
+
+### ❌ Debería devolver: 409 Conflict
+
+
+### ============================================================
+### 5. LISTAR TIPOS (Verificar que se agregó)
+### ============================================================
+
+GET {{baseUrl}}/tipos-prenda
+
+
+### ============================================================
+### 6. ACTUALIZAR TIPO (Admin)
+### ============================================================
+
+PUT {{baseUrl}}/tipos-prenda/Bufanda
+Content-Type: application/json
+
+{
+  "tipo": "Sabana"
+}
+
+### ✅ Debería devolver: 200 OK { "tipo": "Chalina" }
+
+
+### ============================================================
+### 7. VERIFICAR ACTUALIZACIÓN
+### ============================================================
+
+GET {{baseUrl}}/tipos-prenda
+
+
+### ============================================================
+### 8. LOGIN CLIENTE (para crear solicitud con tipo nuevo)
+### ============================================================
+
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "juanperez",
+  "password": "Abc123456!"
+}
+
+
+### ============================================================
+### 9. CREAR SOLICITUD CON NUEVO TIPO
+### ============================================================
+
+POST {{baseUrl}}/solicitudes
+Content-Type: application/json
+
+{
+  "lineas": [
+    { "tipoPrenda": "Chalina", "cantidad": 2 }
+  ],
+  "tratamientoEspecial": "NINGUNO",
+  "lugarRecogida": "Calle Falsa 123, Ciudad",
+  "fechaRecogida": "2026-08-20",
+  "horaRecogida": "10:30",
+  "lugarEntrega": "Calle Verdadera 456, Ciudad"
+}
+
+### ✅ Debería funcionar porque el tipo existe
+
+
+### ============================================================
+### 10. LOGOUT CLIENTE
+### ============================================================
+
+POST {{baseUrl}}/auth/logout
+
+
+### ============================================================
+### 11. LOGIN ADMIN
+### ============================================================
+
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "admin",
+  "password": "Abc123456!"
+}
+
+
+### ============================================================
+### 12. INTENTAR ELIMINAR TIPO EN USO (Debe fallar - 400)
+### ============================================================
+
+DELETE {{baseUrl}}/tipos-prenda/Chalina
+
+### ❌ Debería devolver: 400 Bad Request
+### "No se puede eliminar el tipo "Chalina" porque está siendo usado en solicitudes"
+
+
+### ============================================================
+### 13. CREAR OTRO TIPO PARA ELIMINAR (Admin)
+### ============================================================
+
+POST {{baseUrl}}/tipos-prenda
+Content-Type: application/json
+
+{
+  "tipo": "Corbata"
+}
+
+
+### ============================================================
+### 14. ELIMINAR TIPO NO USADO (Admin)
+### ============================================================
+
+DELETE {{baseUrl}}/tipos-prenda/Corbata
+
+### ✅ Debería devolver: 204 No Content
+
+
+### ============================================================
+### 15. VERIFICAR QUE SE ELIMINÓ
+### ============================================================
+
+GET {{baseUrl}}/tipos-prenda
+
+
+### ============================================================
+### 16. INTENTAR CREAR TIPO CON CARACTERES INVÁLIDOS (Admin)
+### ============================================================
+
+POST {{baseUrl}}/tipos-prenda
+Content-Type: application/json
+
+{
+  "tipo": "Camisa123"
+}
+
+### ❌ Debería devolver: 400 Bad Request
+### "El tipo solo puede contener letras y espacios"
+
+
+### ============================================================
+### 17. INTENTAR CREAR TIPO MUY CORTO (Admin)
+### ============================================================
+
+POST {{baseUrl}}/tipos-prenda
+Content-Type: application/json
+
+{
+  "tipo": "Ab"
+}
+
+### ❌ Debería devolver: 400 Bad Request
+### "El tipo debe tener al menos 3 caracteres"
+
+
+### ============================================================
+### 18. LOGOUT ADMIN
+### ============================================================
+
+POST {{baseUrl}}/auth/logout
+

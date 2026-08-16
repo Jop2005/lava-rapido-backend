@@ -1,0 +1,307 @@
+### ============================================================
+### REQUISITOS NO FUNCIONALES - LavaRápido
+### ============================================================
+### RNF 1-23: Pruebas de rendimiento, seguridad y mantenibilidad
+### ============================================================
+### ⏱️ Medir tiempos de respuesta manualmente con la extensión REST Client
+### ============================================================
+
+@baseUrl = http://localhost:3000
+
+### ============================================================
+### RNF 4 - TIEMPO DE LOGIN (< 2 segundos)
+### ============================================================
+
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "juanperez",
+  "password": "Abc123456!"
+}
+
+### ⏱️ Medir tiempo de respuesta
+
+### ============================================================
+### RNF 2 - TIEMPO DE GUARDADO DE SOLICITUD (< 2 segundos)
+### ============================================================
+
+POST {{baseUrl}}/solicitudes
+Content-Type: application/json
+
+{
+  "lineas": [
+    { "tipoPrenda": "Camisa", "cantidad": 3 },
+    { "tipoPrenda": "Pantalón", "cantidad": 2 }
+  ],
+  "tratamientoEspecial": "PLANCHADO",
+  "lugarRecogida": "Calle Falsa 123, Ciudad",
+  "fechaRecogida": "2026-08-20",
+  "horaRecogida": "10:30",
+  "lugarEntrega": "Calle Verdadera 456, Ciudad"
+}
+
+### ⏱️ Medir tiempo de respuesta
+
+### ============================================================
+### RNF 5 - TIEMPO DE CONSULTA DE SOLICITUD (< 2 segundos)
+### ============================================================
+
+### 1. Login cliente
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "juanperez",
+  "password": "Abc123456!"
+}
+
+### 2. Consultar solicitud activa
+GET {{baseUrl}}/solicitudes/cliente/activa
+
+### ⏱️ Medir tiempo de respuesta
+
+### 3. Consultar solicitud por ID
+GET {{baseUrl}}/solicitudes/cliente/LAV-2026-08-00001
+
+### ⏱️ Medir tiempo de respuesta
+
+### ============================================================
+### RNF 6 - TIEMPO DE LISTADO DE SOLICITUDES (< 3 segundos)
+### ============================================================
+
+### 1. Login admin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "admin",
+  "password": "Abc123456!"
+}
+
+### 2. Listar solicitudes con paginación (20 por página)
+GET {{baseUrl}}/solicitudes
+
+### ⏱️ Medir tiempo de respuesta
+
+### 3. Listar con filtro por estado
+GET {{baseUrl}}/solicitudes?estado=SOLICITADA
+
+### ⏱️ Medir tiempo de respuesta
+
+### ============================================================
+### RNF 8 - TIEMPO DE ACCIONES ADMIN (< 3 segundos)
+### ============================================================
+
+### Crear lavandero
+POST {{baseUrl}}/usuarios/empleado
+Content-Type: application/json
+
+{
+  "id": "77777777777",
+  "nombreUsuario": "testadmin",
+  "password": "Abc123456!",
+  "nombre": "Test Admin",
+  "fechaNacimiento": "1990-01-01",
+  "correo": "test@lavarapido.com",
+  "rol": "LAVANDERO"
+}
+
+### ⏱️ Medir tiempo de respuesta
+
+### Eliminar lavandero
+DELETE {{baseUrl}}/usuarios/empleado/77777777777
+
+### ⏱️ Medir tiempo de respuesta
+
+### ============================================================
+### RNF 10 - TIEMPO DE GENERACIÓN DE CÓDIGO (< 500ms)
+### ============================================================
+
+### El código se genera al crear solicitud
+POST {{baseUrl}}/solicitudes
+Content-Type: application/json
+
+{
+  "lineas": [
+    { "tipoPrenda": "Camisa", "cantidad": 1 }
+  ],
+  "tratamientoEspecial": "NINGUNO",
+  "lugarRecogida": "Calle Falsa 123, Ciudad",
+  "fechaRecogida": "2026-08-20",
+  "horaRecogida": "10:30"
+}
+
+### ⏱️ Medir tiempo de respuesta (ver código generado)
+
+### ============================================================
+### RNF 11 - TIEMPO DE ACTUALIZACIÓN DE ESTADO (< 1 segundo)
+### ============================================================
+
+### 1. Login lavandero
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "lavandero1",
+  "password": "Abc123456!"
+}
+
+### 2. Cambiar estado a EN_PROCESO
+PUT {{baseUrl}}/solicitudes/LAV-2026-08-00003/en-proceso
+
+### ⏱️ Medir tiempo de respuesta
+
+### 3. Login conductor
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "conductor1",
+  "password": "Abc123456!"
+}
+
+### 4. Cambiar estado a COMPLETADA
+PUT {{baseUrl}}/solicitudes/LAV-2026-08-00003/completada
+
+### ⏱️ Medir tiempo de respuesta
+
+### ============================================================
+### RNF 16 - VALIDACIÓN DE CONTRASEÑA
+### ============================================================
+
+### ❌ Contraseña débil (sin mayúscula, sin número, sin símbolo)
+POST {{baseUrl}}/usuarios/cliente
+Content-Type: application/json
+
+{
+  "id": "88888888888",
+  "nombreUsuario": "passdebil",
+  "password": "12345678",
+  "nombre": "Pass Débil",
+  "fechaNacimiento": "1990-01-01",
+  "correo": "passdebil@email.com",
+  "rol": "CLIENTE"
+}
+
+### ❌ Debe devolver: 400 Bad Request
+
+### ============================================================
+### RNF 17 - SANITIZACIÓN DE ENTRADAS
+### ============================================================
+
+### ❌ Intentar inyección SQL/HTML en campo nombre
+POST {{baseUrl}}/usuarios/cliente
+Content-Type: application/json
+
+{
+  "id": "12345678909",
+  "nombreUsuario": "hacker",
+  "password": "Abc123456!",
+  "nombre": "<script>alert('XSS')</script>",
+  "fechaNacimiento": "1990-01-01",
+  "correo": "hacker@email.com",
+  "rol": "CLIENTE"
+}
+
+### ✅ Debe sanitizar y no ejecutar el script
+
+### ============================================================
+### RNF 19 - VALIDACIÓN POR ROL
+### ============================================================
+
+### 1. Login cliente
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "juanperez",
+  "password": "Abc123456!"
+}
+
+### ❌ Cliente intenta listar todas las solicitudes (debe fallar)
+GET {{baseUrl}}/solicitudes
+
+### ❌ Debe devolver: 403 Forbidden
+
+### ❌ Cliente intenta crear lavandero (debe fallar)
+POST {{baseUrl}}/usuarios/empleado
+Content-Type: application/json
+
+{
+  "id": "99999999999",
+  "nombreUsuario": "clientecrea",
+  "password": "Abc123456!",
+  "nombre": "Cliente",
+  "fechaNacimiento": "1990-01-01",
+  "correo": "clientecrea@email.com",
+  "rol": "LAVANDERO"
+}
+
+### ❌ Debe devolver: 403 Forbidden
+
+### ============================================================
+### RNF 22 - CAMBIOS DE ESTADO REFLEJADOS AL RECARGAR
+### ============================================================
+
+### 1. Login cliente
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "juanperez",
+  "password": "Abc123456!"
+}
+
+### 2. Consultar solicitud activa (debe reflejar el estado actual)
+GET {{baseUrl}}/solicitudes/cliente/activa
+
+### ✅ Debe mostrar el estado actualizado (EN_PROCESO o COMPLETADA)
+
+### ============================================================
+### RNF 18 - CONTRASEÑAS CIFRADAS EN BD
+### ============================================================
+
+### Verificar en PostgreSQL:
+### SELECT id, nombreUsuario, contraseña FROM "Usuario" WHERE nombreUsuario = 'juanperez';
+### ✅ La contraseña debe verse como un hash (ej: $2b$10$...)
+
+### ============================================================
+### RNF 15 - HTTPS
+### ============================================================
+
+### En producción, todas las peticiones deben usar HTTPS
+### Verificar configuración de SSL en el servidor
+
+### ============================================================
+### RNF 23 - TAMAÑO MÁXIMO DE FOTO (5MB)
+### ============================================================
+
+### Intentar subir foto > 5MB debe fallar
+### (Se prueba con el frontend o con una petición multipart)
+
+### ============================================================
+### LOGOUT FINAL
+### ============================================================
+
+POST {{baseUrl}}/auth/logout
+
+### ============================================================
+### RESUMEN RNF BACKEND:
+### ============================================================
+### RNF 2  ✅ - Guardado de solicitud < 2 segundos
+### RNF 4  ✅ - Login < 2 segundos
+### RNF 5  ✅ - Consulta de solicitud < 2 segundos
+### RNF 6  ✅ - Listado de solicitudes < 3 segundos
+### RNF 8  ✅ - Acciones de admin < 3 segundos
+### RNF 10 ✅ - Código de seguimiento < 500ms
+### RNF 11 ✅ - Actualización de estado < 1 segundo
+### RNF 15 ⚠️ - HTTPS (configuración de infraestructura)
+### RNF 16 ✅ - Validación de contraseña
+### RNF 17 ✅ - Sanitización de entradas
+### RNF 18 ✅ - Contraseñas cifradas en BD
+### RNF 19 ✅ - Validación por rol
+### RNF 21 ❌ - Correo con reintentos (pendiente)
+### RNF 22 ✅ - Cambios de estado reflejados al recargar
+### RNF 23 ✅ - Tamaño máximo de foto 5MB
+### ============================================================

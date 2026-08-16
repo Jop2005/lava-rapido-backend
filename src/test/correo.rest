@@ -1,0 +1,218 @@
+### ============================================================
+### TEST DE CORREOS - LavaRápido
+### ============================================================
+### OBJETIVO: Probar que se envían correos en cada función
+### ============================================================
+
+@baseUrl = http://localhost:3000
+
+### ============================================================
+### 1. LOGIN CLIENTE
+### ============================================================
+
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "juanperez",
+  "password": "Abc123456!"
+}
+
+### ============================================================
+### 2. CREAR SOLICITUD → CORREO DE CONFIRMACIÓN
+### ============================================================
+
+POST {{baseUrl}}/solicitudes
+Content-Type: application/json
+
+{
+  "lineas": [
+    { "tipoPrenda": "Camisa", "cantidad": 3 },
+    { "tipoPrenda": "Pantalón", "cantidad": 2 }
+  ],
+  "tratamientoEspecial": "PLANCHADO"
+}
+
+### ✅ ESPERADO: Correo de confirmación de solicitud
+### 📧 Para: juan@email.com
+### 📧 Asunto: Confirmación de solicitud LavaRápido
+
+
+### ============================================================
+### 3. LOGOUT CLIENTE
+### ============================================================
+
+POST {{baseUrl}}/auth/logout
+
+
+### ============================================================
+### 4. LOGIN ADMIN
+### ============================================================
+
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "admin",
+  "password": "Abc123456!"
+}
+
+
+### ============================================================
+### 5. CREAR LAVANDERO (si no existe)
+### ============================================================
+
+POST {{baseUrl}}/usuarios/empleado
+Content-Type: application/json
+
+{
+  "id": "22222222222",
+  "nombreUsuario": "lavandero1",
+  "password": "Abc123456!",
+  "nombre": "Carlos Rodríguez",
+  "fechaNacimiento": "1988-03-10",
+  "correo": "carlos@lavarapido.com",
+  "rol": "LAVANDERO"
+}
+
+
+### ============================================================
+### 6. LOGOUT ADMIN
+### ============================================================
+
+POST {{baseUrl}}/auth/logout
+
+
+### ============================================================
+### 7. LOGIN LAVANDERO
+### ============================================================
+
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "lavandero1",
+  "password": "Abc123456!"
+}
+
+
+### ============================================================
+### 8. CAMBIAR A EN_PROCESO → CORREO DE CAMBIO DE ESTADO
+### ============================================================
+### 🔴 CAMBIA EL ID POR EL QUE SE GENERÓ EN EL PASO 2
+
+PUT {{baseUrl}}/solicitudes/LAV-2026-08-00002/en-proceso
+
+### ✅ ESPERADO: Correo de cambio de estado (SOLICITADA → EN_PROCESO)
+### 📧 Para: juan@email.com
+### 📧 Asunto: 🔄 Actualización de tu solicitud
+
+
+### ============================================================
+### 9. LOGOUT LAVANDERO
+### ============================================================
+
+POST {{baseUrl}}/auth/logout
+
+
+### ============================================================
+### 10. LOGIN ADMIN (para crear conductor)
+### ============================================================
+
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "admin",
+  "password": "Abc123456!"
+}
+
+
+### ============================================================
+### 11. CREAR CONDUCTOR (si no existe)
+### ============================================================
+
+POST {{baseUrl}}/usuarios/empleado
+Content-Type: application/json
+
+{
+  "id": "33333333333",
+  "nombreUsuario": "conductor1",
+  "password": "Abc123456!",
+  "nombre": "Pedro Sánchez",
+  "fechaNacimiento": "1987-11-30",
+  "correo": "pedro@lavarapido.com",
+  "rol": "CONDUCTOR"
+}
+
+
+### ============================================================
+### 12. LOGOUT ADMIN
+### ============================================================
+
+POST {{baseUrl}}/auth/logout
+
+
+### ============================================================
+### 13. LOGIN CONDUCTOR
+### ============================================================
+
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "conductor1",
+  "password": "Abc123456!"
+}
+
+
+### ============================================================
+### 14. CAMBIAR A COMPLETADA → CORREO DE CAMBIO DE ESTADO
+### ============================================================
+### 🔴 CAMBIA EL ID POR EL QUE SE GENERÓ EN EL PASO 2
+
+PUT {{baseUrl}}/solicitudes/LAV-2026-08-00002/completada
+
+### ✅ ESPERADO: Correo de cambio de estado (EN_PROCESO → COMPLETADA)
+### 📧 Para: juan@email.com
+### 📧 Asunto: ✅ Actualización de tu solicitud
+
+
+### ============================================================
+### 15. LOGOUT CONDUCTOR
+### ============================================================
+
+POST {{baseUrl}}/auth/logout
+
+
+### ============================================================
+### 16. VERIFICAR CORREOS EN CONSOLA
+### ============================================================
+
+### Después de ejecutar todos los pasos, revisa la consola del servidor
+### Deberías ver 3 correos:
+
+### 1️⃣ CORREO DE CONFIRMACIÓN (Paso 2)
+###    - Para: juan@email.com
+###    - Asunto: Confirmación de solicitud LavaRápido
+###    - Código: LAV-2026-08-000XX
+
+### 2️⃣ CORREO DE CAMBIO A EN_PROCESO (Paso 8)
+###    - Para: juan@email.com
+###    - Asunto: 🔄 Actualización de tu solicitud
+###    - Cambio: SOLICITADA → EN_PROCESO
+
+### 3️⃣ CORREO DE CAMBIO A COMPLETADA (Paso 14)
+###    - Para: juan@email.com
+###    - Asunto: ✅ Actualización de tu solicitud
+###    - Cambio: EN_PROCESO → COMPLETADA
+
+
+### ============================================================
+### NOTAS:
+### ============================================================
+### 1. Los correos aparecen en la consola del servidor (terminal)
+### 2. Cada correo tiene un formato visual con bordes
+### 3. Los códigos de solicitud pueden variar (LAV-2026-08-00001, 00002, etc.)
+### 4. Ajusta el ID en los pasos 8 y 14 según el código generado
+### ============================================================
