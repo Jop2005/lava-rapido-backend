@@ -1062,6 +1062,23 @@
   resolved "https://registry.yarnpkg.com/@pkgr/core/-/core-0.3.6.tgz#3569708bd4be4d8870ba32bf1c456dac81600d97"
   integrity sha512-SEeaJLb3qBNF/OaXnaR1NmmBbFYk1zC0ZH/52fATcRPLFg/p791YrcyFFy44Bo9sLaGuSuLp5Q6axbb/O+v/RA==
 
+"@prisma/client@6.17.1":
+  version "6.17.1"
+  resolved "https://registry.yarnpkg.com/@prisma/client/-/client-6.17.1.tgz"
+  integrity sha512-Z1s3fUbXEDLB7tRIzM2CzzB2LrzsR85pO4R8dW8WmdZ79DNrw9DkUamKpK3AlDmuQdZGbIE1y5IulqQjPO8sTg==
+  dependencies:
+    "@prisma/engines-version" "6.17.1-1.0.0"
+
+"@prisma/engines@6.17.1":
+  version "6.17.1"
+  resolved "https://registry.yarnpkg.com/prisma/-/prisma-6.17.1.tgz"
+  integrity sha512-Ks0fNnPquM8MqnybElpXuz3hQla8K2nBLxbyWQjCjCzZsmE4YtIB8qT7xV0cWfT4I+QrAzZonm5KZx7vkjrq9Q==
+
+"@prisma/engines-version@6.17.1-1.0.0":
+  version "6.17.1-1.0.0"
+  resolved "https://registry.yarnpkg.com/@prisma/engines-version/-/engines-version-6.17.1-1.0.0.tgz"
+  integrity sha512-8uhFh3Cr1I0C+28cOGcUHClyQFtLvAHfq9x7HMLF7e4gN8clzkB9wY/YggqgjgqGNWYh04GV9MzhFnuMF/GAlA==
+  
 "@scarf/scarf@=1.4.0":
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/@scarf/scarf/-/scarf-1.4.0.tgz#3bbb984085dbd6d982494538b523be1ce6562972"
@@ -4330,6 +4347,13 @@ pretty-format@30.4.1, pretty-format@^30.0.0:
     ansi-styles "^5.2.0"
     react-is-18 "npm:react-is@^18.3.1"
     react-is-19 "npm:react-is@^19.2.5"
+
+prisma@6.17.1:
+  version "6.17.1"
+  resolved "https://registry.yarnpkg.com/prisma/-/prisma-6.17.1.tgz"
+  integrity sha512-Ev7mpy0Huc24Z+9zK7nA9RlY4KlLg+6yIDWb8PS2qQ1soSBBSWGH0zBf2Jj9KxqEGBNslz0hJAZYk1cZ3yhQHg==
+  dependencies:
+    "@prisma/engines" "6.17.1"
 
 proxy-addr@^2.0.7:
   version "2.0.7"
